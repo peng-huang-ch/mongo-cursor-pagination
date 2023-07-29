@@ -13,14 +13,15 @@ import { PaginateResult, PaginationParams, PluginOptions } from './types';
  */
 export function mongoosePlugin(schema: Schema, options: PluginOptions) {
   const paginateFnName: string = (options && options.name) || 'paginate';
-  schema.static(paginateFnName, async function (params: object): Promise<
-    PaginateResult<any>
-  > {
-    if (!this.collection) {
-      throw new Error('collection property not found');
-    }
-    return find(this.collection, Object.assign({}, params));
-  });
+  schema.static(
+    paginateFnName,
+    async function (params: PaginationParams): Promise<PaginateResult<any>> {
+      if (!this.collection) {
+        throw new Error('collection property not found');
+      }
+      return find(this.collection, Object.assign({}, params));
+    },
+  );
 
   const searchFnName: string = (options && options.searchFnName) || 'search';
   schema.static(

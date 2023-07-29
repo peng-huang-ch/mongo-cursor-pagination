@@ -7,8 +7,8 @@ import {
 } from './utils/query';
 import { aggregate } from './aggregate';
 
-import type { Collection } from 'mongodb';
-import type { PaginateResult, Paginated } from './types';
+import type { Collection, FindOptions } from 'mongodb';
+import type { PaginateResult, Paginated, PaginationParams } from './types';
 
 /**
  * Performs a find() query on a passed-in Mongo collection, using criteria you specify. The results
@@ -38,7 +38,10 @@ import type { PaginateResult, Paginated } from './types';
  *    -hint {String} An optional index hint to provide to the mongo query
  *    -collation {Object} An optional collation to provide to the mongo query. E.g. { locale: 'en', strength: 2 }. When null, disables the global collation.
  */
-export async function find<T>(collection: Collection, params: any) {
+export async function find<T>(
+  collection: Collection,
+  params: PaginationParams,
+) {
   const removePaginatedFieldInResponse =
     params.fields && !params.fields[params.paginatedField || '_id'];
 
@@ -60,12 +63,13 @@ export async function find<T>(collection: Collection, params: any) {
     const cursorQuery = generateCursorQuery(params);
     const $sort = generateSort(params);
 
-    // Support both the native 'mongodb' driver. See:
-    const options = { projection: params.fields };
-    const query = collection.find(
-      { $and: [cursorQuery, params.query] },
-      options,
-    );
+    // Support the native 'mongodb' driver.
+    const options: FindOptions = {
+      limit: params.limit! + 1, // Query one more element to see if there's another page.
+      sort: $sort,
+    };
+    if (!_.isEmpty(params.fields)) options.projection = params.fields;
+    if (!_.isEmpty(params.hint)) options.hint = params.fields;
 
     /**
      * IMPORTANT
@@ -73,22 +77,20 @@ export async function find<T>(collection: Collection, params: any) {
      * If using collation, check the README:
      * https://github.com/mixmaxhq/mongo-cursor-pagination#important-note-regarding-collation
      */
-    const isCollationNull = params.collation === null;
-    const collation = params.collation;
-    const collatedQuery =
-      collation && !isCollationNull ? query.collation(collation) : query;
-    // Query one more element to see if there's another page.
-    const cursor = collatedQuery.sort($sort).limit(params.limit + 1);
-    if (params.hint) cursor.hint(params.hint);
-    const results = (await cursor.toArray()) as Paginated<T>[];
+    if (params.collation) options.collation = params.collation;
+    const query = collection.find(
+      { $and: [cursorQuery, params.query ?? {}] },
+      options,
+    );
 
+    const results = (await query.toArray()) as Paginated<T>[];
     response = prepareResponse(results, params);
   }
 
   // Remove fields that we added to the query (such as paginatedField and _id) that the user didn't ask for.
   if (removePaginatedFieldInResponse) {
     response.results = response.results?.map((result) =>
-      _.omit(result, params.paginatedField),
+      _.omit(result, params.paginatedField!),
     ) as T[];
   }
 

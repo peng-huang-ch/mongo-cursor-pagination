@@ -5,3 +5,4 @@ export * from './findWithReq';
 export * from './search';
 export * from './utils/sanitizeQuery';
 export * from './mongoose.plugin';
+export * from './types';

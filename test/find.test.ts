@@ -1926,7 +1926,7 @@ describe('find', () => {
           paginatedField: 'name',
           sortAscending: true,
           limit: 10,
-          collation: null,
+          collation: undefined,
         },
       );
 

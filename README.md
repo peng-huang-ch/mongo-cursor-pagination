@@ -1,16 +1,20 @@
 # mongo-cursor-pagination
 
-[![Build Status](https://travis-ci.org/mixmaxhq/mongo-cursor-pagination.svg?branch=master)](https://travis-ci.org/mixmaxhq/mongo-cursor-pagination)
+Fork from [mixmaxhq/mongo-cursor-pagination](https://github.com/mixmaxhq/mongo-cursor-pagination.).
 
-This module aids in implementing "cursor-based" pagination using Mongo range queries or relevancy-based search results. **This module is currently used in production for the [Mixmax API](https://developer.mixmax.com) to return millions of results a day**.
-
-### New
+## Changes
 
 - Remove support `mongoist`
 
 - Rewrite with `typescript`
 
-- Remove the `config.MAX_LIMIT`
+- Remove the `config.MAX_LIMIT` option
+
+- support `mongodb projection`
+
+## The original README.md
+
+This module aids in implementing "cursor-based" pagination using Mongo range queries or relevancy-based search results. **This module is currently used in production for the [Mixmax API](https://developer.mixmax.com) to return millions of results a day**.
 
 ## Background
 

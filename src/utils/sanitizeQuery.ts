@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import { resolveFields } from './resolveFields';
-import { PaginationQuery } from '../types';
+import { PaginationParams, PaginationQuery } from '../types';
 
 /**
  * Normalize the given query parameter to an array, so we support both param=a,b and
@@ -56,7 +56,7 @@ export function normalizeQueryArray(query: Record<string, any>, param: string) {
 export function sanitizeQuery(
   query: PaginationQuery,
   params: Record<string, any>,
-) {
+): PaginationParams {
   params = params || {};
 
   if (!_.isEmpty(query.limit)) {
@@ -89,5 +89,5 @@ export function sanitizeQuery(
   // Set fields to undefined if it's empty to avoid adding _id: 0 in find.
   params.fields = _.isEmpty(fields) ? undefined : fields;
 
-  return params;
+  return params as PaginationParams;
 }

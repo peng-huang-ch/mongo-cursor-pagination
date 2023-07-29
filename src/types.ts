@@ -1,4 +1,4 @@
-import type { ObjectId } from 'bson';
+import type { ObjectId, Hint, CollationOptions } from 'mongodb';
 import { Document, Model } from 'mongoose';
 
 export type Paginated<T> = T & { _id: ObjectId };
@@ -6,12 +6,17 @@ export type Paginated<T> = T & { _id: ObjectId };
 export type SearchDocument<T> = T & { _id: ObjectId; score: number };
 
 export interface PaginationFields {
+  before?: Record<string, any>;
   previous?: string | Record<string, any>;
   next?: string | Record<string, any>;
+  after?: Record<string, any>;
   sortCaseInsensitive?: boolean;
+  sortAscending?: boolean;
   query?: Record<string, any>;
   paginatedField?: string;
   fields?: Record<string, any>;
+  hint?: Hint;
+  collation?: CollationOptions;
 }
 
 export interface PaginationQuery extends PaginationFields {
@@ -19,7 +24,7 @@ export interface PaginationQuery extends PaginationFields {
 }
 
 export interface PaginationParams extends PaginationFields {
-  limit: number;
+  limit?: number;
   next?: string;
 }
 
