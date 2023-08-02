@@ -1,6 +1,6 @@
 import type { ParsedQs } from 'qs';
 import type { Collection } from 'mongodb';
-import { PaginationParams, PaginationQuery } from './types';
+import type { PaginationParams, PaginationQuery } from './types';
 import { find } from './find';
 import { sanitizeQuery } from './utils/sanitizeQuery';
 

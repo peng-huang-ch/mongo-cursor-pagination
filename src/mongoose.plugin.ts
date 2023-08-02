@@ -1,8 +1,8 @@
-import _ from 'underscore';
+import { Schema } from 'mongoose';
 import { find } from './find';
 import { search } from './search';
-import { Schema } from 'mongoose';
-import { PaginateResult, PaginationParams, PluginOptions } from './types';
+
+import type { PaginateResult, PaginationParams, PluginOptions } from './types';
 
 /**
  * Mongoose plugin

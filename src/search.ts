@@ -1,9 +1,9 @@
 import _ from 'underscore';
 import * as bsonUrlEncoding from './utils/bsonUrlEncoding';
+import { DEFAULT_LIMIT } from './constants';
 
 import type { Collection } from 'mongodb';
 import type { SearchDocument, PaginationParams, PaginateResult } from './types';
-import { DEFAULT_LIMIT } from './constants';
 
 /**
  * Performs a search query on a Mongo collection and pages the results. This is different from

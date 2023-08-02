@@ -1,8 +1,9 @@
 import _ from 'underscore';
+import { Collection } from 'mongodb';
+
+import { DEFAULT_LIMIT } from '../constants';
 import * as bsonUrlEncoding from './bsonUrlEncoding';
 import { getPropertyViaDotNotation } from './getPropertyViaDotNotation';
-import { Collection } from 'mongodb';
-import { DEFAULT_LIMIT } from '../constants';
 
 export async function sanitizeParams(collection: Collection, params: any) {
   if (params.previous)

@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import { resolveFields } from './resolveFields';
-import { PaginationParams, PaginationQuery } from '../types';
+
+import type { PaginationParams, PaginationQuery } from '../types';
 
 /**
  * Normalize the given query parameter to an array, so we support both param=a,b and
