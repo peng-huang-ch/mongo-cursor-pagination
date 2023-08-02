@@ -26,6 +26,7 @@
   },
   "keywords": [
     "mongo",
+    "mongoose",
     "pagination",
     "cursor",
     "database",
@@ -43,7 +44,6 @@
     "base64-url": "^2.2.0",
     "object-path": "^0.11.5",
     "projection-utils": "^1.1.0",
-    "remove": "^0.1.5",
     "underscore": "^1.13.6"
   },
   "devDependencies": {
@@ -63,10 +63,11 @@
     "eslint-plugin-prettier": "^5.0.0",
     "husky": "^8.0.3",
     "jest": "^29.6.2",
+    "lint-staged": "^13.2.3",
     "mongodb": "^5.7.0",
     "mongodb-memory-server": "6.9.6",
     "mongoose": "5.11.10",
-    "prettier": "^1.19.1",
+    "prettier": "^3.0.0",
     "semantic-release": "^17.2.3"
   },
   "peerDependencies": {

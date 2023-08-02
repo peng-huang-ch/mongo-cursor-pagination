@@ -11,6 +11,12 @@ module.exports = {
   testRegex: '.*\\.test\\.ts$',
   transform: tsjPreset.transform,
   collectCoverageFrom: ['**/*.(t|j)s'],
+  coveragePathIgnorePatterns: [
+    'node_modules',
+    'coverage',
+    '.eslintrc.js',
+    'jest.config.js',
+  ],
   coverageDirectory: './coverage',
   // testEnvironment: 'node',
 };

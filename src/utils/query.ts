@@ -32,7 +32,7 @@ export interface PaginationResponse {
  *
  * @returns void
  */
-export function encodePaginationTokens<T extends { _id: ObjectId }>(
+export function encodePaginationTokens<T extends { _id: ObjectId | string }>(
   params: PaginationParams,
   prepare: PreparePaginateResult<T>,
 ): PaginateResult<T> {

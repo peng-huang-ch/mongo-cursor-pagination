@@ -6,7 +6,7 @@ describe('encodePaginationTokens', () => {
     const params = {
       paginatedField: '_id',
     };
-    const prepare = {
+    const prepare: any = {
       next: { _id: '789' },
       previous: { _id: '456' },
     };
