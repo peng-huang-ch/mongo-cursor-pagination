@@ -4,9 +4,9 @@ on:
   push:
     branches:
       - master
-    # paths:
-    #   - 'src/**'
-    #   - 'test/**'
+    paths:
+      - 'src/**'
+      - 'test/**'
 
 jobs:
   run-tests:
