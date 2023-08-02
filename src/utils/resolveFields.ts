@@ -1,4 +1,4 @@
-const _ = require('underscore');
+import _ from 'underscore';
 const { ProjectionFieldSet } = require('projection-utils');
 
 /**
@@ -9,12 +9,17 @@ const { ProjectionFieldSet } = require('projection-utils');
  * @param {Boolean=} includeIdDefault Whether to include _id by default (mongo's default behavior).
  * @returns {ProjectionFieldSet} The synthesized field set.
  */
-function fieldsFromMongo(projection = {}, includeIdDefault = false) {
-  const fields = _.reduce(
+export function fieldsFromMongo(
+  projection: Record<string, any> = {},
+  includeIdDefault = false,
+) {
+  const fields = _.reduce<Record<string, any>, string[]>(
     projection,
     (memo, value, key) => {
       if (key !== '_id' && value !== undefined && !value) {
-        throw new TypeError('projection includes exclusion, but we do not support that');
+        throw new TypeError(
+          'projection includes exclusion, but we do not support that',
+        );
       }
       if (value || (key === '_id' && value === undefined && includeIdDefault)) {
         memo.push(key);
@@ -22,7 +27,7 @@ function fieldsFromMongo(projection = {}, includeIdDefault = false) {
 
       return memo;
     },
-    []
+    [],
   );
 
   return ProjectionFieldSet.fromDotted(fields);
@@ -39,7 +44,11 @@ function fieldsFromMongo(projection = {}, includeIdDefault = false) {
  *   always be configured as specified.
  * @returns {?Object<String, *>=} The resolved fields declaration.
  */
-function resolveFields(desiredFields, allowedFields, overrideFields) {
+export function resolveFields(
+  desiredFields?: string[],
+  allowedFields?: any,
+  overrideFields?: any,
+) {
   if (desiredFields != null && !Array.isArray(desiredFields)) {
     throw new TypeError('expected nullable array for desiredFields');
   }
@@ -65,7 +74,9 @@ function resolveFields(desiredFields, allowedFields, overrideFields) {
 
   // Don't trust fields passed in the querystring, so whitelist them against the
   // fields defined in parameters. Add override fields from parameters.
-  const fields = desiredFieldset.intersect(allowedFieldset).union(fieldsFromMongo(overrideFields));
+  const fields = desiredFieldset
+    .intersect(allowedFieldset)
+    .union(fieldsFromMongo(overrideFields));
 
   if (fields.isEmpty()) {
     // This projection isn't representable as a mongo projection - nor should it be. We don't want
@@ -90,5 +101,3 @@ function resolveFields(desiredFields, allowedFields, overrideFields) {
   }
   return projection;
 }
-
-module.exports = resolveFields;

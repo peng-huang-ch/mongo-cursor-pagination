@@ -1,4 +1,7 @@
-module.exports = function getPropertyViaDotNotation(propertyName, object) {
+export function getPropertyViaDotNotation(
+  propertyName: string,
+  object: Record<string, any>,
+) {
   const parts = propertyName.split('.');
 
   let prop = object;
@@ -6,4 +9,4 @@ module.exports = function getPropertyViaDotNotation(propertyName, object) {
     prop = prop[parts[i]];
   }
   return prop;
-};
+}

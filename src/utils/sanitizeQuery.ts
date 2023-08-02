@@ -1,5 +1,6 @@
-const _ = require('underscore');
-const resolveFields = require('./resolveFields');
+import _ from 'underscore';
+import { resolveFields } from './resolveFields';
+import { PaginationQuery } from '../types';
 
 /**
  * Normalize the given query parameter to an array, so we support both param=a,b and
@@ -11,12 +12,14 @@ const resolveFields = require('./resolveFields');
  * @throws {TypeError} When the query parameter isn't a string, an empty value, or an array of
  *   strings.
  */
-function normalizeQueryArray(query, param) {
+export function normalizeQueryArray(query: Record<string, any>, param: string) {
   const value = query[param];
   if (Array.isArray(value)) {
     for (let i = 0; i < value.length; ++i) {
       if (!_.isString(value[i])) {
-        throw new TypeError('expected string array or comma-separated string for ' + param);
+        throw new TypeError(
+          'expected string array or comma-separated string for ' + param,
+        );
       }
     }
     return value;
@@ -29,7 +32,9 @@ function normalizeQueryArray(query, param) {
   if (_.isString(value)) {
     return value.split(',');
   }
-  throw new TypeError('expected string array or comma-separated string for ' + param);
+  throw new TypeError(
+    'expected string array or comma-separated string for ' + param,
+  );
 }
 
 /**
@@ -48,11 +53,14 @@ function normalizeQueryArray(query, param) {
  *      {_id: 0} or {internalField: 1}. We only support field exclusion for _id, as we expect whitelists
  *      for fields from both params.fields and params.overrideFields.
  */
-module.exports = function sanitizeQuery(query, params) {
+export function sanitizeQuery(
+  query: PaginationQuery,
+  params: Record<string, any>,
+) {
   params = params || {};
 
   if (!_.isEmpty(query.limit)) {
-    const limit = parseInt(query.limit, 10);
+    const limit = parseInt(query.limit!, 10);
     // Don't let the user specify a higher limit than params.limit, if defined.
     if (!isNaN(limit) && (!params.limit || params.limit > limit)) {
       params.limit = limit;
@@ -72,7 +80,7 @@ module.exports = function sanitizeQuery(query, params) {
   const fields = resolveFields(
     normalizeQueryArray(query, 'fields'),
     params.fields,
-    params.overrideFields
+    params.overrideFields,
   );
   if (fields === null) {
     throw new TypeError('no valid fields provided');
@@ -82,4 +90,4 @@ module.exports = function sanitizeQuery(query, params) {
   params.fields = _.isEmpty(fields) ? undefined : fields;
 
   return params;
-};
+}

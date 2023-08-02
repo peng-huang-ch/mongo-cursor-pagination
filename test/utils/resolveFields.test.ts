@@ -1,4 +1,4 @@
-const resolveFields = require('../../src/utils/resolveFields');
+import { resolveFields } from '../../src/utils/resolveFields';
 
 describe('resolveFields', () => {
   it('should support empty fields', () => {
@@ -12,7 +12,12 @@ describe('resolveFields', () => {
   });
 
   it('should support default fields', () => {
-    const fields = { 'users.id': 1, 'users.email': 1, 'users.services.google.token': 1, extra: 1 };
+    const fields = {
+      'users.id': 1,
+      'users.email': 1,
+      'users.services.google.token': 1,
+      extra: 1,
+    };
     const fieldsMinusId = Object.assign({ _id: 0 }, fields);
     const fieldsPlusId = Object.assign({ _id: 1 }, fields);
     expect(resolveFields([], fields)).toEqual(fieldsMinusId);
@@ -21,20 +26,34 @@ describe('resolveFields', () => {
   });
 
   it('should let override disable the id field', () => {
-    const fields = { 'users.id': 1, 'users.email': 1, 'users.services.google.token': 1, extra: 1 };
+    const fields = {
+      'users.id': 1,
+      'users.email': 1,
+      'users.services.google.token': 1,
+      extra: 1,
+    };
     const fieldsMinusId = Object.assign({ _id: 0 }, fields);
     const fieldsPlusId = Object.assign({ _id: 1 }, fields);
     expect(resolveFields([], fieldsPlusId, { _id: 0 })).toEqual(fieldsMinusId);
   });
 
   it('should select fields', () => {
-    const fields = { 'users.id': 1, 'users.email': 1, 'users.services.google.token': 1, extra: 1 };
+    const fields = {
+      'users.id': 1,
+      'users.email': 1,
+      'users.services.google.token': 1,
+      extra: 1,
+    };
     const fieldsPlusId = Object.assign({ _id: 1 }, fields);
-    expect(resolveFields(['_id', 'users.services.google.token'], fields)).toEqual({
+    expect(
+      resolveFields(['_id', 'users.services.google.token'], fields),
+    ).toEqual({
       _id: 0,
       'users.services.google.token': 1,
     });
-    expect(resolveFields(['_id', 'users.services.google.token'], fieldsPlusId)).toEqual({
+    expect(
+      resolveFields(['_id', 'users.services.google.token'], fieldsPlusId),
+    ).toEqual({
       _id: 1,
       'users.services.google.token': 1,
     });
@@ -57,7 +76,12 @@ describe('resolveFields', () => {
   });
 
   it('should add fields from the override', () => {
-    const fields = { 'users.id': 1, 'users.email': 1, 'users.services.google.token': 1, extra: 1 };
+    const fields = {
+      'users.id': 1,
+      'users.email': 1,
+      'users.services.google.token': 1,
+      extra: 1,
+    };
     expect(resolveFields(['_id', 'users'], fields, { another: 1 })).toEqual({
       _id: 0,
       'users.id': 1,

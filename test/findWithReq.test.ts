@@ -1,18 +1,26 @@
-const _ = require('underscore');
-const paging = require('../');
-const dbUtils = require('./support/db');
+import { Db, MongoClient, ObjectId } from 'mongodb';
 
-const driver = process.env.DRIVER;
+import _ from 'underscore';
+import * as paging from '../src/findWithReq';
 
 describe('findWithReq', () => {
-  let mongod;
-  const t = {};
+  let connection: MongoClient;
+  let db: Db;
+  interface TestDocument {
+    _id: ObjectId;
+    counter: number;
+    color: string;
+    start: number;
+    timestamp?: number;
+  }
+
   beforeAll(async () => {
-    mongod = dbUtils.start();
-    t.db = await dbUtils.db(mongod, driver);
+    const uri: string = (global as any).__MONGO_URI__;
+    connection = await MongoClient.connect(uri);
+    db = connection.db();
 
     await Promise.all([
-      t.db.collection('test_paging').insert([
+      db.collection('test_paging').insertMany([
         {
           counter: 1,
           myfield1: 'a',
@@ -34,7 +42,7 @@ describe('findWithReq', () => {
           myfield2: 'b',
         },
       ]),
-      t.db.collection('test_paging_fields').insert({
+      db.collection('test_paging_fields').insertOne({
         obj: {
           one: 1,
           two: {
@@ -51,11 +59,11 @@ describe('findWithReq', () => {
       }),
     ]);
   });
-  afterAll(() => mongod.stop());
+  afterAll(async () => connection.close());
 
   describe('basic usage', () => {
     it('queries first few pages', async () => {
-      const collection = t.db.collection('test_paging');
+      const collection = db.collection('test_paging');
       const fields = {
         counter: 1,
         myfield1: 1,
@@ -73,7 +81,7 @@ describe('findWithReq', () => {
         collection,
         {
           fields,
-        }
+        },
       );
 
       expect(res.results.length).toEqual(2);
@@ -100,7 +108,7 @@ describe('findWithReq', () => {
         collection,
         {
           fields,
-        }
+        },
       );
       expect(res.results.length).toEqual(1);
       expect(res.results[0]).toEqual({
@@ -122,7 +130,7 @@ describe('findWithReq', () => {
         collection,
         {
           fields,
-        }
+        },
       );
 
       expect(res.results.length).toEqual(1);
@@ -135,7 +143,7 @@ describe('findWithReq', () => {
     });
 
     it('does not query more fields than allowed', async () => {
-      const collection = t.db.collection('test_paging');
+      const collection = db.collection('test_paging');
       const res = await paging.findWithReq(
         {
           query: {
@@ -149,7 +157,7 @@ describe('findWithReq', () => {
           fields: {
             counter: 1,
           },
-        }
+        },
       );
 
       expect(res.results.length).toEqual(1);
@@ -159,7 +167,7 @@ describe('findWithReq', () => {
     });
 
     it('allows a request to specify fields if not otherwise specified', async () => {
-      const collection = t.db.collection('test_paging');
+      const collection = db.collection('test_paging');
       const res = await paging.findWithReq(
         {
           query: {
@@ -168,7 +176,7 @@ describe('findWithReq', () => {
           },
         },
         collection,
-        {}
+        {},
       );
 
       expect(res.results.length).toEqual(1);
@@ -179,7 +187,7 @@ describe('findWithReq', () => {
     });
 
     it('does not allow a limit to be specified that is higher than params.limit', async () => {
-      const collection = t.db.collection('test_paging');
+      const collection = db.collection('test_paging');
       const res = await paging.findWithReq(
         {
           query: {
@@ -189,15 +197,15 @@ describe('findWithReq', () => {
         collection,
         {
           limit: 1,
-        }
+        },
       );
 
       expect(res.results.length).toEqual(1);
     });
 
     it('handles empty values', async () => {
-      const collection = t.db.collection('test_paging');
-      const res = await paging.findWithReq(
+      const collection = db.collection('test_paging');
+      const res = await paging.findWithReq<TestDocument>(
         {
           query: {
             limit: '',
@@ -207,7 +215,7 @@ describe('findWithReq', () => {
           },
         },
         collection,
-        {}
+        {},
       );
 
       expect(res.results.length).toEqual(4);
@@ -220,7 +228,7 @@ describe('findWithReq', () => {
     });
 
     it('handles bad value for limit', async () => {
-      const collection = t.db.collection('test_paging');
+      const collection = db.collection('test_paging');
       const res = await paging.findWithReq(
         {
           query: {
@@ -232,7 +240,7 @@ describe('findWithReq', () => {
           fields: {
             counter: 1,
           },
-        }
+        },
       );
 
       expect(res.results.length).toEqual(4);
@@ -244,7 +252,7 @@ describe('findWithReq', () => {
 
   describe('fields', () => {
     it('picks fields', async () => {
-      const collection = t.db.collection('test_paging_fields');
+      const collection = db.collection('test_paging_fields');
       const res = await paging.findWithReq(
         {
           query: {
@@ -257,7 +265,7 @@ describe('findWithReq', () => {
             obj: 1,
             obj2: 1,
           },
-        }
+        },
       );
 
       expect(res.results[0]).toEqual({
@@ -273,7 +281,7 @@ describe('findWithReq', () => {
     });
 
     it('works without fields', async () => {
-      const collection = t.db.collection('test_paging_fields');
+      const collection = db.collection('test_paging_fields');
       const res = await paging.findWithReq(
         {
           query: {
@@ -281,7 +289,7 @@ describe('findWithReq', () => {
           },
         },
         collection,
-        {}
+        {},
       );
 
       expect(res.results[0]).toEqual({
@@ -297,7 +305,7 @@ describe('findWithReq', () => {
     });
 
     it('picks fields when nested', async () => {
-      const collection = t.db.collection('test_paging_fields');
+      const collection = db.collection('test_paging_fields');
       const res = await paging.findWithReq(
         {
           query: {
@@ -310,7 +318,7 @@ describe('findWithReq', () => {
             'obj.four': 1,
             obj2: 1,
           },
-        }
+        },
       );
 
       expect(res.results[0]).toEqual({
@@ -325,7 +333,7 @@ describe('findWithReq', () => {
     });
 
     it('disallows properties that are not defined', async () => {
-      const collection = t.db.collection('test_paging_fields');
+      const collection = db.collection('test_paging_fields');
       const res = await paging.findWithReq(
         {
           query: {
@@ -337,7 +345,7 @@ describe('findWithReq', () => {
           fields: {
             obj: 1,
           },
-        }
+        },
       );
 
       expect(res.results[0]).toEqual({
@@ -352,7 +360,7 @@ describe('findWithReq', () => {
     });
 
     it('picks exact fields', async () => {
-      const collection = t.db.collection('test_paging_fields');
+      const collection = db.collection('test_paging_fields');
       const res = await paging.findWithReq(
         {
           query: {
@@ -364,7 +372,7 @@ describe('findWithReq', () => {
           fields: {
             obj: 1,
           },
-        }
+        },
       );
 
       expect(res.results[0]).toEqual({
@@ -384,7 +392,7 @@ describe('findWithReq', () => {
     });
 
     it('picks exact subfields', async () => {
-      const collection = t.db.collection('test_paging_fields');
+      const collection = db.collection('test_paging_fields');
       const res = await paging.findWithReq(
         {
           query: {
@@ -397,7 +405,7 @@ describe('findWithReq', () => {
             'obj.one': 1,
             'obj.four.five': 1,
           },
-        }
+        },
       );
 
       expect(res.results[0]).toEqual({
@@ -413,7 +421,7 @@ describe('findWithReq', () => {
     });
 
     it('does not allow a broader scoping of fields', async () => {
-      const collection = t.db.collection('test_paging_fields');
+      const collection = db.collection('test_paging_fields');
       const res = await paging.findWithReq(
         {
           query: {
@@ -425,7 +433,7 @@ describe('findWithReq', () => {
           fields: {
             'obj.one': 1,
           },
-        }
+        },
       );
 
       expect(res.results[0]).toEqual({
@@ -436,7 +444,7 @@ describe('findWithReq', () => {
     });
 
     it('does not allow a broader scoping of subfields', async () => {
-      const collection = t.db.collection('test_paging_fields');
+      const collection = db.collection('test_paging_fields');
       const res = await paging.findWithReq(
         {
           query: {
@@ -450,7 +458,7 @@ describe('findWithReq', () => {
             'obj.four.five': 1,
             obj2: 1,
           },
-        }
+        },
       );
 
       expect(res.results[0]).toEqual({
@@ -469,7 +477,7 @@ describe('findWithReq', () => {
     });
 
     it('picks exact subfields', async () => {
-      const collection = t.db.collection('test_paging_fields');
+      const collection = db.collection('test_paging_fields');
       const res = await paging.findWithReq(
         {
           query: {
@@ -481,7 +489,7 @@ describe('findWithReq', () => {
           fields: {
             'obj.one': 1,
           },
-        }
+        },
       );
 
       expect(res.results[0]).toEqual({

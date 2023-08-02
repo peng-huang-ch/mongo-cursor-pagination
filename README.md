@@ -6,7 +6,11 @@ This module aids in implementing "cursor-based" pagination using Mongo range que
 
 ### New
 
-- [Now Supports Mongoose](https://github.com/mixmaxhq/mongo-cursor-pagination#with-mongoose)
+- Remove support `mongoist`
+
+- Rewrite with `typescript`
+
+- Remove the `config.MAX_LIMIT`
 
 ## Background
 
@@ -68,10 +72,10 @@ Call `find()` with the following parameters:
 Example:
 
 ```js
-const mongoist = require('mongoist');
+const mognodb = require('mognodb');
 const MongoPaging = require('mongo-cursor-pagination');
 
-const db = mongoist('mongodb://localhost:27017/mydb');
+const db = mognodb('mongodb://localhost:27017/mydb');
 
 async function findExample() {
   await db.collection('myobjects').insertMany([

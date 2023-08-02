@@ -1,5 +1,16 @@
+// const { pathsToModuleNameMapper, preset } = require('ts-jest');
+const { defaults: tsjPreset } = require('ts-jest/presets');
+
+// const { compilerOptions } = require('./tsconfig.json');
+
 module.exports = {
+  preset: '@shelf/jest-mongodb',
+  moduleFileExtensions: ['js', 'json', 'ts'],
   clearMocks: true,
-  collectCoverageFrom: ['src/**/*.js'],
-  testEnvironment: 'node',
+  rootDir: '.',
+  testRegex: '.*\\.test\\.ts$',
+  transform: tsjPreset.transform,
+  collectCoverageFrom: ['**/*.(t|j)s'],
+  coverageDirectory: './coverage',
+  // testEnvironment: 'node',
 };

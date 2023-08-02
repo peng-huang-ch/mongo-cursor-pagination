@@ -1,6 +1,9 @@
-const _ = require('underscore');
-const config = require('./config');
-const bsonUrlEncoding = require('./utils/bsonUrlEncoding');
+import _ from 'underscore';
+import * as bsonUrlEncoding from './utils/bsonUrlEncoding';
+
+import type { Collection } from 'mongodb';
+import type { SearchDocument, PaginationParams, PaginateResult } from './types';
+import { DEFAULT_LIMIT } from './constants';
 
 /**
  * Performs a search query on a Mongo collection and pages the results. This is different from
@@ -21,21 +24,23 @@ const bsonUrlEncoding = require('./utils/bsonUrlEncoding');
  *    -next {String} The value to start querying the page. Defaults to start at the beginning of
  *      the results.
  */
-module.exports = async function(collection, searchString, params) {
+export async function search<T>(
+  collection: Collection,
+  searchString: string,
+  params: Partial<PaginationParams>,
+): Promise<PaginateResult<T>> {
   if (_.isString(params.limit)) params.limit = parseInt(params.limit, 10);
   if (params.next) params.next = bsonUrlEncoding.decode(params.next);
 
   params = _.defaults(params, {
     query: {},
-    limit: config.MAX_LIMIT,
+    limit: DEFAULT_LIMIT,
   });
 
-  if (params.limit < 1) params.limit = 1;
-  if (params.limit > config.MAX_LIMIT) params.limit = config.MAX_LIMIT;
+  if (params.limit && params.limit < 1) params.limit = 1;
 
   // We must perform an aggregate query since Mongo can't query a range when using $text search.
-
-  const aggregate = [
+  const aggregate: any[] = [
     {
       $match: _.extend({}, params.query, {
         $text: {
@@ -87,19 +92,21 @@ module.exports = async function(collection, searchString, params) {
     $limit: params.limit,
   });
 
-  let response;
+  let response: PaginateResult<T>;
 
-  // Support both the native 'mongodb' driver and 'mongoist'. See:
-  // https://www.npmjs.com/package/mongoist#cursor-operations
-  const aggregateMethod = collection.aggregateAsCursor ? 'aggregateAsCursor' : 'aggregate';
-
-  const results = await collection[aggregateMethod](aggregate).toArray();
+  // Only support the native 'mongodb' driver. See:
+  const results = await collection
+    .aggregate<SearchDocument<T>>(aggregate)
+    .toArray();
 
   const fullPageOfResults = results.length === params.limit;
   if (fullPageOfResults) {
     response = {
       results,
-      next: bsonUrlEncoding.encode([_.last(results).score, _.last(results)._id]),
+      next: bsonUrlEncoding.encode([
+        _.last(results)?.score,
+        _.last(results)?._id,
+      ]),
     };
   } else {
     response = {
@@ -107,4 +114,4 @@ module.exports = async function(collection, searchString, params) {
     };
   }
   return response;
-};
+}

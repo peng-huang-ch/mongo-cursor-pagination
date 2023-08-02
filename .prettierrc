@@ -1,1 +1,4 @@
-"@mixmaxhq/prettier-config"
+{
+	"singleQuote": true,
+	"trailingComma": "all"
+}
