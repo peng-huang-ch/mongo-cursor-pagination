@@ -1,15 +1,20 @@
-const _ = require('underscore');
-const sanitizeParams = require('./utils/sanitizeParams');
-const { prepareResponse, generateSort, generateCursorQuery } = require('./utils/query');
-const aggregate = require('./aggregate');
-const config = require('./config');
+import _ from 'underscore';
+import { sanitizeParams } from './utils/sanitizeParams';
+import {
+  prepareResponse,
+  generateSort,
+  generateCursorQuery,
+} from './utils/query';
+import { aggregate } from './aggregate';
+
+import type { Collection, FindOptions } from 'mongodb';
+import type { PaginateResult, Paginated, PaginationParams } from './types';
 
 /**
  * Performs a find() query on a passed-in Mongo collection, using criteria you specify. The results
  * are ordered by the paginatedField.
  *
  * @param {MongoCollection} collection A collection object returned from the MongoDB library's
- *    or the mongoist package's `db.collection(<collectionName>)` method.
  * @param {Object} params
  *    -query {Object} The find query.
  *    -limit {Number} The page size. Must be between 1 and `config.MAX_LIMIT`.
@@ -33,31 +38,38 @@ const config = require('./config');
  *    -hint {String} An optional index hint to provide to the mongo query
  *    -collation {Object} An optional collation to provide to the mongo query. E.g. { locale: 'en', strength: 2 }. When null, disables the global collation.
  */
-module.exports = async function(collection, params) {
+export async function find<T>(
+  collection: Collection,
+  params: PaginationParams,
+) {
   const removePaginatedFieldInResponse =
     params.fields && !params.fields[params.paginatedField || '_id'];
 
-  let response;
+  let response: PaginateResult<T>;
   if (params.sortCaseInsensitive) {
     // For case-insensitive sorting, we need to work with an aggregation:
-    response = aggregate(
+    response = await aggregate(
       collection,
       Object.assign({}, params, {
         aggregation: params.query ? [{ $match: params.query }] : [],
-      })
+      }),
     );
   } else {
     // Need to repeat `params.paginatedField` default value ('_id') since it's set in 'sanitizeParams()'
-    params = _.defaults(await sanitizeParams(collection, params), { query: {} });
+    params = _.defaults(await sanitizeParams(collection, params), {
+      query: {},
+    });
 
     const cursorQuery = generateCursorQuery(params);
     const $sort = generateSort(params);
 
-    // Support both the native 'mongodb' driver and 'mongoist'. See:
-    // https://www.npmjs.com/package/mongoist#cursor-operations
-    const findMethod = collection.findAsCursor ? 'findAsCursor' : 'find';
-
-    const query = collection[findMethod]({ $and: [cursorQuery, params.query] }, params.fields);
+    // Support the native 'mongodb' driver.
+    const options: FindOptions = {
+      limit: params.limit! + 1, // Query one more element to see if there's another page.
+      sort: $sort,
+    };
+    if (!_.isEmpty(params.fields)) options.projection = params.fields;
+    if (!_.isEmpty(params.hint)) options.hint = params.fields;
 
     /**
      * IMPORTANT
@@ -65,21 +77,22 @@ module.exports = async function(collection, params) {
      * If using collation, check the README:
      * https://github.com/mixmaxhq/mongo-cursor-pagination#important-note-regarding-collation
      */
-    const isCollationNull = params.collation === null;
-    const collation = params.collation || config.COLLATION;
-    const collatedQuery = collation && !isCollationNull ? query.collation(collation) : query;
-    // Query one more element to see if there's another page.
-    const cursor = collatedQuery.sort($sort).limit(params.limit + 1);
-    if (params.hint) cursor.hint(params.hint);
-    const results = await cursor.toArray();
+    if (params.collation) options.collation = params.collation;
+    const query = collection.find(
+      { $and: [cursorQuery, params.query ?? {}] },
+      options,
+    );
 
+    const results = (await query.toArray()) as Paginated<T>[];
     response = prepareResponse(results, params);
   }
 
   // Remove fields that we added to the query (such as paginatedField and _id) that the user didn't ask for.
   if (removePaginatedFieldInResponse) {
-    response.results = _.map(response.results, (result) => _.omit(result, params.paginatedField));
+    response.results = response.results?.map((result) =>
+      _.omit(result, params.paginatedField!),
+    ) as T[];
   }
 
   return response;
-};
+}

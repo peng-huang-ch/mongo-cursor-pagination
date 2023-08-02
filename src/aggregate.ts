@@ -1,7 +1,12 @@
-const _ = require('underscore');
-const sanitizeParams = require('./utils/sanitizeParams');
-const { prepareResponse, generateSort, generateCursorQuery } = require('./utils/query');
-const config = require('./config');
+import _ from 'underscore';
+import { sanitizeParams } from './utils/sanitizeParams';
+import {
+  prepareResponse,
+  generateSort,
+  generateCursorQuery,
+} from './utils/query';
+import type { Collection } from 'mongodb';
+import type { PaginateResult, Paginated } from './types';
 
 /**
  * Performs an aggregate() query on a passed-in Mongo collection, using criteria you specify.
@@ -21,7 +26,7 @@ const config = require('./config');
  *    or the mongoist package's `db.collection(<collectionName>)` method.
  * @param {Object} params
  *    -aggregation {Object[]} The aggregation query.
- *    -limit {Number} The page size. Must be between 1 and `config.MAX_LIMIT`.
+ *    -limit {Number} The page size. Must be between 1 and `constants.MAX_LIMIT`.
  *    -paginatedField {String} The field name to query the range for. The field must be:
  *        1. Orderable. We must sort by this value. If duplicate values for paginatedField field
  *          exist, the results will be secondarily ordered by the _id.
@@ -41,8 +46,12 @@ const config = require('./config');
  *    -options {Object} Aggregation options
  *    -collation {Object} An optional collation to provide to the mongo query. E.g. { locale: 'en', strength: 2 }. When null, disables the global collation.
  */
-module.exports = async function aggregate(collection, params) {
-  params = _.defaults(await sanitizeParams(collection, params), { aggregation: [] });
+export async function aggregate<T>(
+  collection: Collection,
+  params: any,
+): Promise<PaginateResult<T>> {
+  const sanitized = await sanitizeParams(collection, params);
+  params = _.defaults(sanitized, { aggregation: [] });
 
   const $match = generateCursorQuery(params);
   const $sort = generateSort(params);
@@ -58,7 +67,11 @@ module.exports = async function aggregate(collection, params) {
       { $project: { __lc: 0 } },
     ]);
   } else {
-    aggregation = params.aggregation.concat([{ $match }, { $sort }, { $limit }]);
+    aggregation = params.aggregation.concat([
+      { $match },
+      { $sort },
+      { $limit },
+    ]);
   }
 
   // Aggregation options:
@@ -71,15 +84,12 @@ module.exports = async function aggregate(collection, params) {
    * If using collation, check the README:
    * https://github.com/mixmaxhq/mongo-cursor-pagination#important-note-regarding-collation
    */
-  const isCollationNull = params.collation === null;
-  const collation = params.collation || config.COLLATION;
-  if (collation && !isCollationNull) options.collation = collation;
+  if (params.collation) options.collation = params.collation;
 
-  // Support both the native 'mongodb' driver and 'mongoist'. See:
-  // https://www.npmjs.com/package/mongoist#cursor-operations
-  const aggregateMethod = collection.aggregateAsCursor ? 'aggregateAsCursor' : 'aggregate';
+  // Support both the native 'mongodb' driver. See:
+  const aggregated = await collection
+    .aggregate<Paginated<T>>(aggregation, options)
+    .toArray();
 
-  const results = await collection[aggregateMethod](aggregation, options).toArray();
-
-  return prepareResponse(results, params);
-};
+  return prepareResponse(aggregated, params);
+}

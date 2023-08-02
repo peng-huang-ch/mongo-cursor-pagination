@@ -1,12 +1,20 @@
 # mongo-cursor-pagination
 
-[![Build Status](https://travis-ci.org/mixmaxhq/mongo-cursor-pagination.svg?branch=master)](https://travis-ci.org/mixmaxhq/mongo-cursor-pagination)
+Fork from [mixmaxhq/mongo-cursor-pagination](https://github.com/mixmaxhq/mongo-cursor-pagination.).
+
+## Changes
+
+- Remove support `mongoist`
+
+- Rewrite with `typescript`
+
+- Remove the `config.MAX_LIMIT` option
+
+- support `mongodb projection`
+
+## The original README.md
 
 This module aids in implementing "cursor-based" pagination using Mongo range queries or relevancy-based search results. **This module is currently used in production for the [Mixmax API](https://developer.mixmax.com) to return millions of results a day**.
-
-### New
-
-- [Now Supports Mongoose](https://github.com/mixmaxhq/mongo-cursor-pagination#with-mongoose)
 
 ## Background
 
@@ -68,10 +76,10 @@ Call `find()` with the following parameters:
 Example:
 
 ```js
-const mongoist = require('mongoist');
+const mognodb = require('mognodb');
 const MongoPaging = require('mongo-cursor-pagination');
 
-const db = mongoist('mongodb://localhost:27017/mydb');
+const db = mognodb('mongodb://localhost:27017/mydb');
 
 async function findExample() {
   await db.collection('myobjects').insertMany([

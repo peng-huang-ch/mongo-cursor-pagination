@@ -1,35 +1,48 @@
-const mongoose = require('mongoose');
-const dbUtils = require('./support/db');
-const mongooseCursorPaginate = require('../src/mongoose.plugin');
+import mongoose from 'mongoose';
+import _ from 'underscore';
+import { mongoosePlugin } from '../src/mongoose.plugin';
+import { PaginateModel, DynPaginateModel } from '../src/types';
+
+interface Author extends mongoose.Document {
+  name: string;
+}
 
 const AuthorSchema = new mongoose.Schema({ name: String });
 AuthorSchema.index({ name: 'text' });
 
-AuthorSchema.plugin(mongooseCursorPaginate, { name: 'paginateFN', searchFnName: 'searchFN' });
+AuthorSchema.plugin(mongoosePlugin, {
+  name: 'paginateFN',
+  searchFnName: 'searchFN',
+});
+const Author = mongoose.model<Author, DynPaginateModel<Author>>(
+  'Author',
+  AuthorSchema,
+);
 
-const Author = mongoose.model('Author', AuthorSchema);
+interface Post extends mongoose.Document {
+  title: string;
+}
 
 const PostSchema = new mongoose.Schema({
   title: String,
   date: Date,
   body: String,
   author: {
-    type: mongoose.Schema.ObjectId,
+    type: mongoose.Schema.Types.ObjectId,
     ref: 'Author',
   },
 });
 
-PostSchema.plugin(mongooseCursorPaginate);
+PostSchema.plugin(mongoosePlugin);
 PostSchema.index({ title: 'text' });
 
-const Post = mongoose.model('Post', PostSchema);
+const Post = mongoose.model<Post, PaginateModel<Post>>('Post', PostSchema);
 
-let mongod;
 describe('mongoose plugin', () => {
   beforeAll(async () => {
-    mongod = await dbUtils.start();
-    await mongoose.connect(await mongod.getConnectionString());
-    await mongoose.connection.db.dropDatabase();
+    const uri: string = (global as any).__MONGO_URI__;
+
+    await mongoose.connect(uri);
     const author = await Author.create({ name: 'Pawan Pandey' });
 
     const posts = [],
@@ -51,10 +64,15 @@ describe('mongoose plugin', () => {
   });
 
   afterAll(async () => {
-    await mongod.stop();
+    await mongoose.connection.dropDatabase();
+    await mongoose.connection.close();
   });
 
   it('initializes the pagination function by the provided name', () => {
+    const method = Author['paginateFN'];
+    expect(method).toBeInstanceOf(Function);
+
+    expect(Author.paginateFN).toBeInstanceOf(Function);
     const promise = Author.paginateFN();
     expect(promise.then instanceof Function).toBe(true);
   });
@@ -66,14 +84,14 @@ describe('mongoose plugin', () => {
 
   it('returns data in the expected format', async () => {
     const data = await Post.paginate();
-    expect(hasOwnProperty.call(data, 'results')).toBe(true);
-    expect(hasOwnProperty.call(data, 'previous')).toBe(true);
-    expect(hasOwnProperty.call(data, 'hasPrevious')).toBe(true);
-    expect(hasOwnProperty.call(data, 'next')).toBe(true);
-    expect(hasOwnProperty.call(data, 'hasNext')).toBe(true);
+    expect(data).toHaveProperty('results');
+    expect(data).toHaveProperty('previous');
+    expect(data).toHaveProperty('hasPrevious');
+    expect(data).toHaveProperty('next');
+    expect(data).toHaveProperty('hasNext');
   });
 
-  //#region search
+  // //#region search
   it('initializes the search function by the provided name', () => {
     const promise = Author.searchFN('');
     expect(promise.then instanceof Function).toBe(true);
@@ -86,8 +104,8 @@ describe('mongoose plugin', () => {
 
   it('returns data in the expected format for search function', async () => {
     const data = await Post.search('Post #1', { limit: 3 });
-    expect(hasOwnProperty.call(data, 'results')).toBe(true);
-    expect(hasOwnProperty.call(data, 'next')).toBe(true);
+    expect(data).toHaveProperty('results');
+    expect(data).toHaveProperty('next');
   });
-  //#endregion
+  // //#endregion
 });
