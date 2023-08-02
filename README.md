@@ -1,6 +1,6 @@
 # mongo-cursor-pagination
 
-Fork from [mixmaxhq/mongo-cursor-pagination](https://github.com/mixmaxhq/mongo-cursor-pagination.).
+Fork from [mixmaxhq/mongo-cursor-pagination](https://github.com/mixmaxhq/mongo-cursor-pagination).
 
 ## Changes
 

@@ -1,5 +1,5 @@
 {
-  "name": "mongo-cursor-pagination",
+  "name": "@peng-huang-ch/mongo-cursor-pagination",
   "version": "8.1.3",
   "description": "Make it easy to return cursor-paginated results from a Mongo collection",
   "main": "dist/index.js",
@@ -22,7 +22,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mixmaxhq/mongo-cursor-pagination.git"
+    "url": "git+https://github.com/peng-huang-ch/mongo-cursor-pagination.git"
   },
   "keywords": [
     "mongo",
@@ -34,12 +34,12 @@
     "search",
     "find"
   ],
-  "author": "Brad Vogel <brad@mixmax.com> (https://mixmax.com/)",
+  "author": "Peng Huang <h499871809@gmail.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/mixmaxhq/mongo-cursor-pagination/issues"
+    "url": "https://github.com//peng-huang-ch/mongo-cursor-pagination/issues"
   },
-  "homepage": "https://github.com/mixmaxhq/mongo-cursor-pagination#readme",
+  "homepage": "https://github.com//peng-huang-ch/mongo-cursor-pagination#readme",
   "dependencies": {
     "base64-url": "^2.2.0",
     "object-path": "^0.11.5",
@@ -66,11 +66,14 @@
     "lint-staged": "^13.2.3",
     "mongodb": "^5.7.0",
     "mongodb-memory-server": "6.9.6",
-    "mongoose": "5.11.10",
+    "mongoose": "^7.4.1",
     "prettier": "^3.0.0",
-    "semantic-release": "^17.2.3"
+    "semantic-release": "^17.4.7"
   },
   "peerDependencies": {
     "bson": "^5.4.0"
+  },
+  "publishConfig": {
+    "@peng-huang-ch:registry": "https://npm.pkg.github.com"
   }
 }
