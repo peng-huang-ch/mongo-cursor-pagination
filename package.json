@@ -1,6 +1,6 @@
 {
   "name": "@peng-huang-ch/mongo-cursor-pagination",
-  "version": "8.1.3",
+  "version": "8.1.4",
   "description": "Make it easy to return cursor-paginated results from a Mongo collection",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -18,7 +18,12 @@
     "fmt": "prettier --write '**/*.{md,json,yml}'",
     "lint:check": "eslint --cache --max-warnings 0 '**/*.{ts,mts,js}'",
     "fmt:check": "prettier --check '**/*.{md,json,yml}'",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "prepublishOnly": "npm run build"
+  },
+  "publishConfig": {
+    "access": "public",
+    "tag": "latest"
   },
   "repository": {
     "type": "git",
@@ -72,9 +77,6 @@
     "ts-jest": "^29.1.1"
   },
   "peerDependencies": {
-    "bson": "^5.4.0"
-  },
-  "publishConfig": {
-    "@peng-huang-ch:registry": "https://npm.pkg.github.com"
+    "bson": "^4.0.0 || ^5.0.0"
   }
 }
