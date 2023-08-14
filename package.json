@@ -1,6 +1,6 @@
 {
   "name": "@peng-huang-ch/mongo-cursor-pagination",
-  "version": "8.1.4",
+  "version": "8.1.5",
   "description": "Make it easy to return cursor-paginated results from a Mongo collection",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -42,9 +42,9 @@
   "author": "Peng Huang <h499871809@gmail.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com//peng-huang-ch/mongo-cursor-pagination/issues"
+    "url": "https://github.com/peng-huang-ch/mongo-cursor-pagination/issues"
   },
-  "homepage": "https://github.com//peng-huang-ch/mongo-cursor-pagination#readme",
+  "homepage": "https://github.com/peng-huang-ch/mongo-cursor-pagination#readme",
   "dependencies": {
     "base64-url": "^2.2.0",
     "object-path": "^0.11.5",

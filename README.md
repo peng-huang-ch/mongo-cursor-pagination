@@ -36,7 +36,7 @@ Here are some examples of cursor-based APIs:
 
 ## Install
 
-`npm install mongo-cursor-pagination --save`
+`npm install @peng-huang-ch/mongo-cursor-pagination --save`
 
 ## Usage
 
